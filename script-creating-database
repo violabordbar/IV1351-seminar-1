@@ -1,0 +1,118 @@
+/*Script for creating the database*/
+
+CREATE TABLE person (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    personal_number VARCHAR(12) UNIQUE,
+    first_name VARCHAR(15),
+    last_name VARCHAR(25),
+    street VARCHAR(50),
+    zip VARCHAR(6),
+    city VARCHAR(100)
+);
+
+CREATE TABLE employee (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    salary VARCHAR(6),
+    manager VARCHAR(30),
+    person_id INT,
+    department_id INT,
+    job_title_id INT
+);
+
+CREATE TABLE department (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    department_name VARCHAR(20) UNIQUE,
+    manager VARCHAR(30)
+);
+
+CREATE TABLE job_title (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    job_title VARCHAR(30) UNIQUE NOT NULL
+);
+
+CREATE TABLE course_layout (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    course_code VARCHAR(10) UNIQUE,
+    course_name VARCHAR(10),
+    min_students INT,
+    max_students INT,
+    hp VARCHAR(3)
+);
+
+CREATE TABLE course_instance (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    instance_id VARCHAR(10) UNIQUE,
+    study_period VARCHAR(2),
+    study_year VARCHAR(4),
+    num_students INT,
+    course_layout_id INT
+);
+
+CREATE TABLE teaching_activity (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    activity_name VARCHAR(20) UNIQUE,
+    factor VARCHAR(3)
+);
+
+CREATE TABLE planned_activity (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    planned_hours VARCHAR(3) NOT NULL,
+    course_instance_id INT,
+    teaching_activity_id INT
+);
+
+CREATE TABLE phone_number (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    phone_num VARCHAR(15) UNIQUE NOT NULL
+);
+
+CREATE TABLE skill_set (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    skill_category VARCHAR(20),
+    skill_description VARCHAR(100)
+);
+
+ALTER TABLE course_instance
+ADD CONSTRAINT fk_course_layout_id
+    FOREIGN KEY (course_layout_id)
+    REFERENCES course_layout(id);
+
+ALTER TABLE planned_activity
+ADD CONSTRAINT fk_course_instance_id
+    FOREIGN KEY (course_instance_id) REFERENCES course_instance(id),
+ADD CONSTRAINT fk_teaching_activity_id
+    FOREIGN KEY (teaching_activity_id) REFERENCES teaching_activity(id);
+
+ALTER TABLE employee
+ADD CONSTRAINT fk_person_id
+    FOREIGN KEY (person_id) REFERENCES person(id),
+ADD CONSTRAINT fk_department_id
+    FOREIGN KEY (department_id) REFERENCES department(id),
+ADD CONSTRAINT fk_job_title_id
+    FOREIGN KEY (job_title_id) REFERENCES job_title(id);
+
+CREATE TABLE employee_planned_activity (
+    planned_activity_id INT NOT NULL,
+    employee_id INT NOT NULL,
+    PRIMARY KEY (planned_activity_id, employee_id),
+    FOREIGN KEY (planned_activity_id) REFERENCES planned_activity(id),
+    FOREIGN KEY (employee_id) REFERENCES employee(id)
+);
+
+CREATE TABLE employee_skill_set (
+    skill_set_id INT NOT NULL,
+    employee_id INT NOT NULL,
+    PRIMARY KEY (skill_set_id, employee_id),
+    FOREIGN KEY (skill_set_id) REFERENCES skill_set(id),
+    FOREIGN KEY (employee_id) REFERENCES employee(id)
+);
+
+CREATE TABLE person_phone_number (
+    person_id INT NOT NULL,
+    phone_number_id INT NOT NULL,
+    PRIMARY KEY (person_id, phone_number_id),
+    FOREIGN KEY (person_id) REFERENCES person(id),
+    FOREIGN KEY (phone_number_id) REFERENCES phone_number(id)
+);
+
+
