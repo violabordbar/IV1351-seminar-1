@@ -1,7 +1,7 @@
 /*Script for creating the database*/
 
 CREATE TABLE person (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     personal_number VARCHAR(12) UNIQUE,
     first_name VARCHAR(15),
     last_name VARCHAR(25),
@@ -11,63 +11,63 @@ CREATE TABLE person (
 );
 
 CREATE TABLE employee (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     salary VARCHAR(6),
     manager VARCHAR(30),
-    person_id INT,
-    department_id INT,
-    job_title_id INT
+    person_id INT NOT NULL,
+    department_id INT NOT NULL,
+    job_title_id INT NOT NULL
 );
 
 CREATE TABLE department (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     department_name VARCHAR(20) UNIQUE,
     manager VARCHAR(30)
 );
 
 CREATE TABLE job_title (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     job_title VARCHAR(30) UNIQUE NOT NULL
 );
 
 CREATE TABLE course_layout (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     course_code VARCHAR(10) UNIQUE,
     course_name VARCHAR(10),
     min_students INT,
     max_students INT,
-    hp VARCHAR(3)
+    hp NUMERIC
 );
 
 CREATE TABLE course_instance (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     instance_id VARCHAR(10) UNIQUE,
     study_period VARCHAR(2),
     study_year VARCHAR(4),
     num_students INT,
-    course_layout_id INT
+    course_layout_id INT NOT NULL
 );
 
 CREATE TABLE teaching_activity (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     activity_name VARCHAR(20) UNIQUE,
-    factor VARCHAR(3)
+    factor NUMERIC
 );
 
 CREATE TABLE planned_activity (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     planned_hours VARCHAR(3) NOT NULL,
-    course_instance_id INT,
-    teaching_activity_id INT
+    course_instance_id INT NOT NULL,
+    teaching_activity_id INT NOT NULL
 );
 
 CREATE TABLE phone_number (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     phone_num VARCHAR(15) UNIQUE NOT NULL
 );
 
 CREATE TABLE skill_set (
-    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     skill_category VARCHAR(20),
     skill_description VARCHAR(100)
 );
