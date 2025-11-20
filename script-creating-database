@@ -107,12 +107,4 @@ CREATE TABLE employee_skill_set (
     FOREIGN KEY (employee_id) REFERENCES employee(id)
 );
 
-CREATE TABLE person_phone_number (
-    person_id INT NOT NULL,
-    phone_number_id INT NOT NULL,
-    PRIMARY KEY (person_id, phone_number_id),
-    FOREIGN KEY (person_id) REFERENCES person(id),
-    FOREIGN KEY (phone_number_id) REFERENCES phone_number(id)
-);
-
 
