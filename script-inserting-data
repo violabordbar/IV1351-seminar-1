@@ -75,19 +75,6 @@ VALUES
     (6, 6),  
     (2, 6);  
 
-INSERT INTO person_phone_number (person_id, phone_number_id)
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3),
-    (4, 4),
-    (5, 5),
-    (6, 6),
-    (7, 7),
-    (8, 8),
-    (9, 9),
-    (10, 10);
-
 INSERT INTO course_layout (course_code, course_name, min_students, max_students, hp) VALUES 
     ('IV1351', 'DataStorg', 50, 500, '7.5'),
     ('IX1500', 'DiscMath', 50, 500, '7.5'),
