@@ -1,0 +1,34 @@
+/*Script for queries that calculate required values for seminar 2*/
+
+CREATE VIEW admin_exam_hours AS
+SELECT
+   instance.instance_id,
+   layout.hp,
+   instance.num_students,
+   instance.study_year,
+   (32 + 0.725* num_students) AS examination_hours,
+   (2 * hp + 28 + 0.2* num_students) AS administration_hours
+FROM
+    course_instance AS instance
+JOIN
+    course_layout AS layout
+ON instance.course_layout_id = layout.id;
+
+CREATE VIEW total_planned_hours AS
+SELECT 
+     planned.planned_hours,
+     instance.id,
+     instance.study_year
+FROM 
+     planned_activity AS planned 
+JOIN 
+     course_instance AS instance 
+ON planned.course_instance_id = instance.id;
+
+CREATE VIEW total_hours AS 
+SELECT
+  (SELECT SUM (administration_hours) FROM admin_exam_hours WHERE study_year = '2025') + 
+  (SELECT SUM (examination_hours) FROM admin_exam_hours WHERE study_year = '2025') + 
+  (SELECT SUM (planned_hours::numeric) FROM total_planned_hours WHERE study_year = '2025');
+
+SELECT * FROM total_hours;
