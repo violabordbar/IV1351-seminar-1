@@ -1,4 +1,5 @@
 /*Script for queries that calculate required values for seminar 2*/
+/*All views are added to the script for creating the database, do not run again, only shown here for submission purposes*/
 
 CREATE VIEW admin_exam_hours AS
 SELECT
@@ -6,6 +7,7 @@ SELECT
    layout.hp,
    instance.num_students,
    instance.study_year,
+   instance.study_period,
    (32 + 0.725* num_students) AS examination_hours,
    (2 * hp + 28 + 0.2* num_students) AS administration_hours
 FROM
@@ -14,21 +16,53 @@ JOIN
     course_layout AS layout
 ON instance.course_layout_id = layout.id;
 
-CREATE VIEW total_planned_hours AS
-SELECT 
-     planned.planned_hours,
-     instance.id,
-     instance.study_year
-FROM 
-     planned_activity AS planned 
-JOIN 
-     course_instance AS instance 
-ON planned.course_instance_id = instance.id;
 
-CREATE VIEW total_hours AS 
+CREATE VIEW factored_hours_per_activity AS
 SELECT
-  (SELECT SUM (administration_hours) FROM admin_exam_hours WHERE study_year = '2025') + 
-  (SELECT SUM (examination_hours) FROM admin_exam_hours WHERE study_year = '2025') + 
-  (SELECT SUM (planned_hours::numeric) FROM total_planned_hours WHERE study_year = '2025');
+   instance.instance_id,
+   teaching.activity_name,
+   SUM(planned.planned_hours::numeric * teaching.factor::numeric) AS factored_hours
+FROM
+   planned_activity AS planned
+JOIN 
+   course_instance AS instance
+ON planned.course_instance_id = instance.id
+JOIN 
+   teaching_activity AS teaching
+ON planned.teaching_activity_id = teaching.id
+WHERE instance.study_year = '2025'
+GROUP BY
+   instance.instance_id,
+   teaching.activity_name;
 
-SELECT * FROM total_hours;
+
+CREATE VIEW instance_activity_hours_2025 AS
+SELECT 
+   factor.instance_id,
+   admin.hp AS hp,
+   admin.num_students AS number_of_students,
+   admin.study_period AS period,
+SUM(CASE WHEN factor.activity_name = 'Lecture' THEN factor.factored_hours ELSE 0 END) AS lecture_hours,
+SUM(CASE WHEN factor.activity_name = 'Lab' THEN factor.factored_hours ELSE 0 END) AS lab_hours,
+SUM(CASE WHEN factor.activity_name = 'Seminar' THEN factor.factored_hours ELSE 0 END) AS seminar_hours,
+SUM(CASE WHEN factor.activity_name = 'Tutorial' THEN factor.factored_hours ELSE 0 END) AS tutorial_hours,
+   admin.examination_hours,
+   admin.administration_hours,
+   SUM (factor.factored_hours) + admin.examination_hours + admin.administration_hours AS total_hours
+FROM 
+   factored_hours_per_activity AS factor
+JOIN 
+   admin_exam_hours AS admin
+ON admin.instance_id = factor.instance_id
+GROUP BY 
+   factor.instance_id,
+   admin.hp,
+   admin.num_students,
+   admin.study_period,
+   admin.examination_hours,
+   admin.administration_hours;
+
+/*query to run for task 1 results after running create database and insert data scripts*/
+SELECT* FROM instance_activity_hours_2025;
+
+
