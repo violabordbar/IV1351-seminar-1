@@ -27,7 +27,7 @@ VALUES
     ('Teaching Assistant'),
     ('IT Administrator');
 
-INSERT INTO employee (salary, manager, person_id, department_id, job_title_id)
+INSERT INTO employee (salary, supervisor, person_id, department_id, job_title_id)
 VALUES
     ('45000', NULL,  1, 1, 2), 
     ('38000', 'Anna Svensson', 2, 1, 1),  
