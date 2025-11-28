@@ -1,6 +1,10 @@
 /*Script for queries that calculate required values for seminar 2*/
 /*All views are added to the script for creating the database, do not run again, only shown here for submission purposes*/
 
+
+/*TASK 1*/
+
+/*Calculates the admin and exam hours*/
 CREATE VIEW admin_exam_hours AS
 SELECT
    instance.instance_id,
@@ -10,50 +14,39 @@ SELECT
    instance.study_period,
    (32 + 0.725* num_students) AS examination_hours,
    (2 * hp + 28 + 0.2* num_students) AS administration_hours
-FROM
-    course_instance AS instance
-JOIN
-    course_layout AS layout
-ON instance.course_layout_id = layout.id;
+FROM course_instance AS instance
+JOIN course_layout AS layout ON instance.course_layout_id = layout.id;
 
-
+/*Calculates the factored hours per activity*/
 CREATE VIEW factored_hours_per_activity AS
 SELECT
    instance.instance_id,
    teaching.activity_name,
    SUM(planned.planned_hours::numeric * teaching.factor::numeric) AS factored_hours
-FROM
-   planned_activity AS planned
-JOIN 
-   course_instance AS instance
-ON planned.course_instance_id = instance.id
-JOIN 
-   teaching_activity AS teaching
-ON planned.teaching_activity_id = teaching.id
+FROM planned_activity AS planned
+JOIN course_instance AS instance ON planned.course_instance_id = instance.id
+JOIN teaching_activity AS teaching ON planned.teaching_activity_id = teaching.id
 WHERE instance.study_year = '2025'
 GROUP BY
    instance.instance_id,
    teaching.activity_name;
 
-
+/*Final view for including all necessary parts in table for task 1*/
 CREATE VIEW instance_activity_hours_2025 AS
 SELECT 
    factor.instance_id,
    admin.hp AS hp,
    admin.num_students AS number_of_students,
    admin.study_period AS period,
-SUM(CASE WHEN factor.activity_name = 'Lecture' THEN factor.factored_hours ELSE 0 END) AS lecture_hours,
-SUM(CASE WHEN factor.activity_name = 'Lab' THEN factor.factored_hours ELSE 0 END) AS lab_hours,
-SUM(CASE WHEN factor.activity_name = 'Seminar' THEN factor.factored_hours ELSE 0 END) AS seminar_hours,
-SUM(CASE WHEN factor.activity_name = 'Tutorial' THEN factor.factored_hours ELSE 0 END) AS tutorial_hours,
+   SUM(CASE WHEN factor.activity_name = 'Lecture' THEN factor.factored_hours ELSE 0 END) AS lecture_hours,
+   SUM(CASE WHEN factor.activity_name = 'Lab' THEN factor.factored_hours ELSE 0 END) AS lab_hours,
+   SUM(CASE WHEN factor.activity_name = 'Seminar' THEN factor.factored_hours ELSE 0 END) AS seminar_hours,
+   SUM(CASE WHEN factor.activity_name = 'Tutorial' THEN factor.factored_hours ELSE 0 END) AS tutorial_hours,
    admin.examination_hours,
    admin.administration_hours,
    SUM (factor.factored_hours) + admin.examination_hours + admin.administration_hours AS total_hours
-FROM 
-   factored_hours_per_activity AS factor
-JOIN 
-   admin_exam_hours AS admin
-ON admin.instance_id = factor.instance_id
+FROM factored_hours_per_activity AS factor
+JOIN admin_exam_hours AS admin ON admin.instance_id = factor.instance_id
 GROUP BY 
    factor.instance_id,
    admin.hp,
@@ -64,5 +57,134 @@ GROUP BY
 
 /*query to run for task 1 results after running create database and insert data scripts*/
 SELECT* FROM instance_activity_hours_2025;
+
+
+/*TASK 2*/
+
+/*View created to have both the employee name and title*/
+CREATE VIEW employee_title_and_name AS
+SELECT
+    employee.id AS employee_id,
+    person.first_name || ' ' || person.last_name AS employee_name,
+    job_title.job_title
+FROM employee 
+JOIN person ON employee.person_id = person.id
+JOIN job_title ON employee.job_title_id = job_title.id;
+
+/*Calculates the factored hours per employee*/
+CREATE VIEW factored_hours_per_employee AS
+SELECT
+    instance.instance_id,
+    layout.hp,
+    employee_title_name.employee_name,
+    employee_title_name.job_title,
+    activity.activity_name,
+    SUM(planned.planned_hours::numeric * activity.factor::numeric) AS factored_hours
+FROM planned_activity AS planned
+JOIN course_instance AS instance ON planned.course_instance_id = instance.id
+JOIN course_layout AS layout ON instance.course_layout_id = layout.id
+JOIN teaching_activity AS activity ON planned.teaching_activity_id = activity.id
+JOIN employee_planned_activity AS employee_planned ON planned.id = employee_planned.planned_activity_id
+JOIN employee_title_and_name AS employee_title_name ON employee_title_name.employee_id = employee_planned.employee_id
+WHERE instance.study_year = '2025'
+GROUP BY
+    instance.instance_id,
+    layout.hp,
+    employee_title_name.employee_name,
+    employee_title_name.job_title,
+    activity.activity_name;
+
+/*Calculates which employees are eligible to have admin + exam hours (only lecturers and professors etc)*/
+CREATE VIEW eligible_teacher_count AS 
+SELECT 
+   admin.instance_id, 
+   COUNT(DISTINCT employee.id) AS num_teachers
+FROM admin_exam_hours AS admin 
+JOIN course_instance AS instance ON instance.instance_id = admin.instance_id 
+JOIN planned_activity AS planned ON planned.course_instance_id = instance.id 
+JOIN employee_planned_activity AS employee_planned ON employee_planned.planned_activity_id = planned.id 
+JOIN employee ON employee.id = employee_planned.employee_id 
+JOIN job_title ON job_title.id = employee.job_title_id 
+WHERE job_title.job_title IN ('Lecturer', 'Senior Lecturer', 'Professor') 
+GROUP BY admin.instance_id;
+
+/*Final view for including all necessary data and calculations for the table in task 2*/
+CREATE VIEW activity_hours_per_employee AS
+SELECT
+   factor.instance_id,
+   factor.hp,
+   factor.employee_name,
+   factor.job_title,
+   SUM(CASE WHEN factor.activity_name = 'Lecture' THEN factor.factored_hours ELSE 0 END) AS lecture_hours,
+   SUM(CASE WHEN factor.activity_name = 'Tutorial' THEN factor.factored_hours ELSE 0 END) AS tutorial_hours,
+   SUM(CASE WHEN factor.activity_name = 'Lab' THEN factor.factored_hours ELSE 0 END) AS lab_hours,
+   SUM(CASE WHEN factor.activity_name = 'Seminar' THEN factor.factored_hours ELSE 0 END) AS seminar_hours,
+   CASE WHEN factor.job_title IN ('Lecturer', 'Senior Lecturer', 'Professor') THEN ROUND(admin.administration_hours / eligible.num_teachers, 2) ELSE 0 END AS admin,
+   CASE WHEN factor.job_title IN ('Lecturer', 'Senior Lecturer', 'Professor') THEN ROUND(admin.examination_hours / eligible.num_teachers, 2) ELSE 0 END AS exam,
+   ROUND(
+   SUM(factor.factored_hours) + 
+   CASE WHEN factor.job_title IN ('Lecturer', 'Senior Lecturer', 'Professor') THEN admin.administration_hours / eligible.num_teachers ELSE 0 END + 
+   CASE WHEN factor.job_title IN ('Lecturer', 'Senior Lecturer', 'Professor') THEN admin.examination_hours / eligible.num_teachers ELSE 0 END, 2
+   ) AS total_hours
+FROM factored_hours_per_employee AS factor
+JOIN admin_exam_hours AS admin ON admin.instance_id = factor.instance_id
+JOIN eligible_teacher_count AS eligible ON eligible.instance_id = factor.instance_id
+WHERE factor.instance_id = '2025-50273'
+GROUP BY
+	factor.instance_id,
+	factor.hp,
+	factor.employee_name,
+	factor.job_title,
+	admin.administration_hours,
+	admin.examination_hours,
+	eligible.num_teachers;
+
+/*query to run for task 2 results after running create database and insert data scripts*/
+SELECT* FROM activity_hours_per_employee;
+
+/*TASK 3*/
+--add code--
+
+
+
+
+
+
+/*TASK 4*/
+CREATE VIEW allocated_courses_per_teacher AS
+SELECT
+    employee_title_name.employee_id,
+    employee_title_name.employee_name,
+    instance.study_period AS period,
+    COUNT(DISTINCT instance.instance_id) AS no_of_courses
+FROM employee_planned_activity AS employee_planned
+JOIN planned_activity AS planned
+  ON employee_planned.planned_activity_id = planned.id
+JOIN course_instance AS instance
+ON planned.course_instance_id = instance.id
+JOIN employee_title_and_name AS employee_title_name
+    ON employee_title_name.employee_id = employee_planned.employee_id
+WHERE instance.study_year = '2025'
+AND instance.study_period = 'P1'
+GROUP BY
+   employee_title_name.employee_id,
+   employee_title_name.employee_name,
+   instance.study_period;
+
+/*query to run for task 4 results after running create database and insert data scripts*/
+SELECT* FROM allocated_courses_per_teacher;
+
+*/OPTIONAL: 
+run the query below to see teachers who are allocated in more than one course instance during the current period, 
+but because of the data in our database, it will not show any results (will show 0 rows)*/
+SELECT* FROM allocated_courses_per_teacher WHERE no_of_courses > 1;
+
+
+
+
+
+
+
+
 
 
