@@ -174,18 +174,20 @@ INSERT INTO employee_planned_activity (planned_activity_id, employee_id)
 VALUES
     ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 2),
       (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 7)),
-    ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 3),
-      (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 2)),
     ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 13),
       (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 1)),
-    ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 10),
-      (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 3)),
-    ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 10),
-      (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 4)),
     ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 4),
       (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 8)),
     ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 3),
-      (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 1));
+     (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 1)),
+    ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 8),
+      (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 2)),
+    ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 8),
+      (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 3)),
+    ((SELECT id FROM planned_activity ORDER BY id LIMIT 1 OFFSET 10),
+     (SELECT id FROM employee ORDER BY id LIMIT 1 OFFSET 0));
+
+
 
 
 
