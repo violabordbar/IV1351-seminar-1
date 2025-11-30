@@ -115,8 +115,10 @@ GROUP BY admin.instance_id;
 /*Final combined view for including all necessary data and calculations for the tables in task 2 an 3*/
 CREATE VIEW activity_hours_per_employee AS
 SELECT
+   layout.course_code,
    factor.instance_id,
    factor.hp,
+   admin.study_period AS period,
    factor.employee_name,
    factor.job_title,
    SUM(CASE WHEN factor.activity_name = 'Lecture' THEN factor.factored_hours ELSE 0 END) AS lecture_hours,
@@ -131,27 +133,59 @@ SELECT
    CASE WHEN factor.job_title IN ('Lecturer', 'Senior Lecturer', 'Professor') THEN admin.examination_hours / eligible.num_teachers ELSE 0 END, 2
    ) AS total_hours
 FROM factored_hours_per_employee AS factor
+JOIN  course_instance AS instance ON instance.instance_id = factor.instance_id
+JOIN course_layout AS layout ON instance.course_layout_id = layout.id
 JOIN admin_exam_hours AS admin ON admin.instance_id = factor.instance_id
 JOIN eligible_teacher_count AS eligible ON eligible.instance_id = factor.instance_id
-WHERE factor.instance_id = '2025-50273'
+WHERE admin.study_year = '2025'
 GROUP BY
+	layout.course_code,
 	factor.instance_id,
 	factor.hp,
+    admin.study_period,
 	factor.employee_name,
 	factor.job_title,
 	admin.administration_hours,
 	admin.examination_hours,
 	eligible.num_teachers;
 
+
 /*query to run for task 2 results after running create database and insert data scripts*/
---add code--
+SELECT
+	course_code,
+	instance_id,
+	hp,
+	employee_name,
+	job_title,
+	lecture_hours,
+	tutorial_hours,
+	lab_hours,
+	seminar_hours,
+	admin,
+	exam,
+	total_hours
+FROM activity_hours_per_employee
+WHERE instance_id = '2025-50273'
+ORDER BY employee_name;
+
 
 /*query to run for task 3 results after running create database and insert data scripts*/
---add code--
-
-
-
-
+SELECT
+	course_code,
+	instance_id,
+	hp,
+	period,
+	employee_name,
+	lecture_hours,
+	tutorial_hours,
+	lab_hours,
+	seminar_hours,
+	admin,
+	exam,
+	total_hours
+FROM activity_hours_per_employee
+WHERE employee_name = 'Oscar Strömberg'
+ORDER BY period, course_code;
 
 
 /*TASK 4*/
@@ -178,9 +212,7 @@ GROUP BY
 /*query to run for task 4 results after running create database and insert data scripts*/
 SELECT* FROM allocated_courses_per_teacher;
 
-*/OPTIONAL: 
-run the query below to see teachers who are allocated in more than one course instance during the current period, 
-but because of the data in our database, it will not show any results (will show 0 rows)*/
+*/OPTIONAL: run the query below to see teachers who are allocated in more than one course instance during the current period*/
 SELECT* FROM allocated_courses_per_teacher WHERE no_of_courses > 1;
 
 
