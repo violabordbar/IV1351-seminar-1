@@ -34,6 +34,7 @@ GROUP BY
 /*Final view for including all necessary parts in table for task 1*/
 CREATE VIEW instance_activity_hours_2025 AS
 SELECT 
+   layout.course_code,
    factor.instance_id,
    admin.hp AS hp,
    admin.num_students AS number_of_students,
@@ -47,7 +48,10 @@ SELECT
    SUM (factor.factored_hours) + admin.examination_hours + admin.administration_hours AS total_hours
 FROM factored_hours_per_activity AS factor
 JOIN admin_exam_hours AS admin ON admin.instance_id = factor.instance_id
+JOIN course_instance AS instance ON instance.instance_id = factor.instance_id
+JOIN course_layout AS layout ON instance.course_layout_id = layout.id
 GROUP BY 
+   layout.course_code,
    factor.instance_id,
    admin.hp,
    admin.num_students,
@@ -59,7 +63,7 @@ GROUP BY
 SELECT* FROM instance_activity_hours_2025;
 
 
-/*TASK 2*/
+/*COMBINED VIEWS FOR TASK 2 & 3*/
 
 /*View created to have both the employee name and title*/
 CREATE VIEW employee_title_and_name AS
@@ -108,7 +112,7 @@ JOIN job_title ON job_title.id = employee.job_title_id
 WHERE job_title.job_title IN ('Lecturer', 'Senior Lecturer', 'Professor') 
 GROUP BY admin.instance_id;
 
-/*Final view for including all necessary data and calculations for the table in task 2*/
+/*Final combined view for including all necessary data and calculations for the tables in task 2 an 3*/
 CREATE VIEW activity_hours_per_employee AS
 SELECT
    factor.instance_id,
@@ -140,9 +144,9 @@ GROUP BY
 	eligible.num_teachers;
 
 /*query to run for task 2 results after running create database and insert data scripts*/
-SELECT* FROM activity_hours_per_employee;
+--add code--
 
-/*TASK 3*/
+/*query to run for task 3 results after running create database and insert data scripts*/
 --add code--
 
 
